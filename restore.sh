@@ -96,11 +96,16 @@ if [ -f "$CONFIG/wallpapers/MacTahoe-day.jpeg" ]; then
     echo "🖼️  壁纸已恢复"
 fi
 
-# 刷新图标缓存（确保窗口按钮 icons 可见）
-gtk-update-icon-cache ~/.local/share/icons/MacTahoe/ 2>/dev/null || true
-gtk-update-icon-cache ~/.local/share/icons/MacTahoe-dark/ 2>/dev/null || true
-gtk-update-icon-cache ~/.local/share/icons/MacTahoe-light/ 2>/dev/null || true
-echo "🎨 图标缓存已刷新"
+# 强制重建图标缓存（解决窗口按钮图标不显示）
+# 先使用预编译缓存
+if [ -f "$CONFIG/icon-cache/MacTahoe-cache" ]; then
+    cp "$CONFIG/icon-cache/MacTahoe-cache" ~/.local/share/icons/MacTahoe/icon-theme.cache 2>/dev/null
+    echo "🎨 图标缓存已部署"
+fi
+# 本地重建以确保兼容性
+gtk-update-icon-cache -f ~/.local/share/icons/MacTahoe/ 2>/dev/null || true
+gtk-update-icon-cache -f ~/.local/share/icons/MacTahoe-dark/ 2>/dev/null || true
+gtk-update-icon-cache -f ~/.local/share/icons/MacTahoe-light/ 2>/dev/null || true
 
 # 修正确保壁纸路径
 WP_PATH="file://$WP_DIR/MacTahoe-day.jpeg"
