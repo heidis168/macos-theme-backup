@@ -96,6 +96,12 @@ if [ -f "$CONFIG/wallpapers/MacTahoe-day.jpeg" ]; then
     echo "🖼️  壁纸已恢复"
 fi
 
+# 刷新图标缓存（确保窗口按钮 icons 可见）
+gtk-update-icon-cache ~/.local/share/icons/MacTahoe/ 2>/dev/null || true
+gtk-update-icon-cache ~/.local/share/icons/MacTahoe-dark/ 2>/dev/null || true
+gtk-update-icon-cache ~/.local/share/icons/MacTahoe-light/ 2>/dev/null || true
+echo "🎨 图标缓存已刷新"
+
 # 修正确保壁纸路径
 WP_PATH="file://$WP_DIR/MacTahoe-day.jpeg"
 gsettings set org.gnome.desktop.background picture-uri "'$WP_PATH'"
