@@ -11,24 +11,31 @@ DIR="$(cd "$(dirname "$0")" && pwd)"
 echo "🛠️  开始全新系统 macOS 风格安装（离线模式）..."
 echo ""
 
-# === 1. 安装系统依赖 ===
+# === 1. 系统依赖 ===
 echo "📦 安装系统依赖..."
 sudo apt update -qq
-sudo apt install -y -qq gnome-shell-extensions 2>/dev/null || true
+sudo apt install -y -qq gnome-shell-extensions sassc gedit gnome-tweaks gnome-shell-extension-manager 2>/dev/null || true
 
-# === 2. 安装 MacTahoe GTK/Shell 主题（本地源码） ===
+# === 2. 直接复制已编译主题（跳过不可靠的 install.sh） ===
 echo ""
-echo "🎨 安装 MacTahoe GTK + Shell 主题..."
-cd "$DIR/themes/MacTahoe-gtk-theme"
-./install.sh -c light -b --round -l --shell -i apple
+echo "🎨 安装 GTK 主题（预编译）..."
+mkdir -p ~/.themes
+cp -r "$DIR/themes-installed/"* ~/.themes/ 2>/dev/null
+echo "  ✓ GTK 主题: $(ls ~/.themes/ 2>/dev/null | wc -l) 个变体"
 
-# === 3. 安装图标主题（本地源码） ===
+# === 3. 图标主题（用 install.sh，这个可靠） ===
 echo ""
 echo "🎨 安装 MacTahoe 图标主题..."
 cd "$DIR/themes/MacTahoe-icon-theme"
-./install.sh
+./install.sh 2>&1 | tail -3
 
-# === 4. 安装 shell 扩展（本地备份） ===
+# === 4. GNOME Shell 主题 ===
+echo ""
+echo "🎨 安装 GNOME Shell 主题..."
+cd "$DIR/themes/MacTahoe-gtk-theme"
+sudo ./install.sh -c light -b --round --shell -i apple 2>&1 | tail -5
+
+# === 5. 扩展 ===
 echo ""
 echo "🔌 安装 GNOME Shell 扩展..."
 EXT_DIR="$HOME/.local/share/gnome-shell/extensions"
@@ -40,7 +47,7 @@ for ext in "$DIR/extensions/"*; do
     echo "  ✓ $extname"
 done
 
-# === 5. 运行 restore.sh（字体 + 设置 + 壁纸 + 扩展管理） ===
+# === 6. 恢复全部配置（字体 + gsettings + dconf + 壁纸 + 扩展启用） ===
 echo ""
 echo "🔄 恢复全部配置..."
 cd "$DIR"
