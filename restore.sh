@@ -2,6 +2,7 @@
 # ==========================================
 # 桌面主题配置一键恢复脚本
 # 恢复全部 GNOME 主题、Dock、GTK4 CSS、壁纸、字体、dconf 扩展配置
+# 自动适配任意用户名
 # ==========================================
 set -e
 
@@ -9,6 +10,21 @@ DIR="$(cd "$(dirname "$0")" && pwd)"
 CONFIG="$DIR/configs"
 
 echo "🔄 正在恢复桌面主题配置..."
+
+# === 预处理：替换配置文件中的硬编码路径为当前用户 ===
+echo "🔧 适配当前用户路径..."
+TMP_CONFIG="/tmp/macos-theme-restore-$$"
+mkdir -p "$TMP_CONFIG"
+
+# 复制并替换 gtk-settings.txt
+sed "s|/home/heidis|$HOME|g" "$CONFIG/gtk-settings.txt" > "$TMP_CONFIG/gtk-settings.txt"
+
+# 复制并替换 dconf 文件
+for f in background.conf screensaver.conf full-dconf.conf; do
+    if [ -f "$CONFIG/dconf/$f" ]; then
+        sed "s|/home/heidis|$HOME|g" "$CONFIG/dconf/$f" > "$TMP_CONFIG/$f"
+    fi
+done
 
 # === SF 字体 ===
 if [ -d "$DIR/fonts/SanFrancisco" ]; then
@@ -19,7 +35,7 @@ if [ -d "$DIR/fonts/SanFrancisco" ]; then
     echo "  ✓ SF 字体已安装"
 fi
 
-# === GTK/Shell/Interface (含 favorite-apps, 时钟, 触摸板等) ===
+# === GTK/Shell/Interface ===
 echo "🎨 恢复 GTK/Shell/界面设置..."
 while IFS='=' read -r line; do
     [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
@@ -29,9 +45,9 @@ while IFS='=' read -r line; do
     val=$(echo "$line" | sed "s/^[^=]* = //")
     [ -z "$schema" ] || [ -z "$key" ] || [ -z "$val" ] && continue
     gsettings set "$schema" "$key" "$val" 2>/dev/null && echo "  ✓ $schema_key" || echo "  ✗ $schema_key (跳过)"
-done < "$CONFIG/gtk-settings.txt"
+done < "$TMP_CONFIG/gtk-settings.txt"
 
-# === Dash-to-Dock (gsettings) ===
+# === Dash-to-Dock ===
 echo "📦 恢复 Dock 配置..."
 DOCK_SCHEMA="org.gnome.shell.extensions.dash-to-dock"
 while IFS='=' read -r line; do
@@ -43,19 +59,22 @@ while IFS='=' read -r line; do
     gsettings set "$DOCK_SCHEMA" "$key" "$val" 2>/dev/null && echo "  ✓ $key" || echo "  ✗ $key (跳过)"
 done < "$CONFIG/dock-settings.txt"
 
-# === dconf: 扩展配置 (blur-my-shell, logo-menu, ding, dash-to-dock 等) ===
+# === dconf: 扩展配置 ===
 echo "🔧 恢复扩展内部配置 (dconf)..."
-if [ -f "$CONFIG/dconf/extensions.conf" ]; then
+if [ -f "$TMP_CONFIG/full-dconf.conf" ]; then
+    dconf load / < "$TMP_CONFIG/full-dconf.conf"
+    echo "  ✓ 完整 dconf 已恢复（路径已适配当前用户）"
+elif [ -f "$CONFIG/dconf/extensions.conf" ]; then
     dconf load /org/gnome/shell/extensions/ < "$CONFIG/dconf/extensions.conf"
-    echo "  ✓ 扩展配置已恢复 (blur-my-shell, logo-menu, ding, appindicator ...)"
+    echo "  ✓ 扩展配置已恢复"
 fi
-if [ -f "$CONFIG/dconf/background.conf" ]; then
-    dconf load /org/gnome/desktop/background/ < "$CONFIG/dconf/background.conf"
-    echo "  ✓ 桌面背景 dconf 已恢复"
+
+# 额外确保背景/锁屏 dconf
+if [ -f "$TMP_CONFIG/background.conf" ]; then
+    dconf load /org/gnome/desktop/background/ < "$TMP_CONFIG/background.conf"
 fi
-if [ -f "$CONFIG/dconf/screensaver.conf" ]; then
-    dconf load /org/gnome/desktop/screensaver/ < "$CONFIG/dconf/screensaver.conf"
-    echo "  ✓ 锁屏 dconf 已恢复"
+if [ -f "$TMP_CONFIG/screensaver.conf" ]; then
+    dconf load /org/gnome/desktop/screensaver/ < "$TMP_CONFIG/screensaver.conf"
 fi
 
 # === GTK4 CSS ===
@@ -77,18 +96,14 @@ if [ -f "$CONFIG/wallpapers/MacTahoe-day.jpeg" ]; then
     echo "🖼️  壁纸已恢复"
 fi
 
+# 修正确保壁纸路径
 WP_PATH="file://$WP_DIR/MacTahoe-day.jpeg"
-gsettings set org.gnome.desktop.background picture-uri "'$WP_PATH'" 2>/dev/null
-gsettings set org.gnome.desktop.background picture-uri-dark "'$WP_PATH'" 2>/dev/null
-gsettings set org.gnome.desktop.screensaver picture-uri "'$WP_PATH'" 2>/dev/null
-echo "🖼️  壁纸路径已修正: $WP_PATH"
-
-# 强制确认路径（gsettings 可能被配置文件覆盖）
 gsettings set org.gnome.desktop.background picture-uri "'$WP_PATH'"
 gsettings set org.gnome.desktop.background picture-uri-dark "'$WP_PATH'"
 gsettings set org.gnome.desktop.screensaver picture-uri "'$WP_PATH'"
+echo "🖼️  壁纸: $WP_PATH"
 
-# === 启用扩展 + 设置禁用列表 ===
+# === 启用扩展 ===
 echo "🔌 管理 Shell 扩展..."
 LOCAL_EXTS=$(ls "$HOME/.local/share/gnome-shell/extensions/" 2>/dev/null | tr '\n' ' ')
 SYS_EXTS=$(ls /usr/share/gnome-shell/extensions/ 2>/dev/null | tr '\n' ' ')
@@ -102,6 +117,9 @@ ARRAY="${ARRAY%, }]"
 gsettings set org.gnome.shell enabled-extensions "$ARRAY" 2>/dev/null
 echo "  ✓ 已启用 $(echo $ALL_EXTS | wc -w) 个扩展"
 
+# === 清理 ===
+rm -rf "$TMP_CONFIG"
+
 echo ""
 echo "✅ 恢复完成！"
-echo "请按 Alt+F2 → r → 回车 重启 GNOME Shell 使主题生效。"
+echo "请注销重新登录使全部设置生效。"

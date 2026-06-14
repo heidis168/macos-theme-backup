@@ -44,7 +44,7 @@ org.gnome.desktop.background picture-options = 'zoom'
 org.gnome.desktop.background primary-color = '#000000000000'
 org.gnome.desktop.background secondary-color = '#000000000000'
 org.gnome.desktop.background show-desktop-icons = true
-# ⚠️ 壁纸路径会被 restore.sh 自动替换为当前用户 $HOME
+# ⚠️ 以上 /home/heidis 路径会被 restore.sh 自动替换为当前 $HOME
 
 # --- Screensaver ---
 org.gnome.desktop.screensaver picture-uri = 'file:///home/heidis/.local/share/backgrounds/MacTahoe-day.jpeg'
