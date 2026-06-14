@@ -1,0 +1,40 @@
+### Dash-to-Dock 配置
+---
+extend-height = false
+autohide = false
+intellihide = true
+always-center-icons = true
+dock-position = 'BOTTOM'
+show-apps-at-top = true
+dock-fixed = false
+dash-max-icon-size = 48
+transparency-mode = 'DYNAMIC'
+background-opacity = 0.14999999999999999
+isolate-locations = true
+
+### 已安装的 Shell 扩展
+add-to-desktop@tommimon.github.com
+apps-menu@gnome-shell-extensions.gcampax.github.com
+auto-move-windows@gnome-shell-extensions.gcampax.github.com
+blur-my-shell@aunetx
+ding@rastersoft.com
+drive-menu@gnome-shell-extensions.gcampax.github.com
+launch-new-instance@gnome-shell-extensions.gcampax.github.com
+light-style@gnome-shell-extensions.gcampax.github.com
+logomenu@aryan_k
+native-window-placement@gnome-shell-extensions.gcampax.github.com
+places-menu@gnome-shell-extensions.gcampax.github.com
+screenshot-window-sizer@gnome-shell-extensions.gcampax.github.com
+snapd-prompting@canonical.com
+snapd-search-provider@canonical.com
+status-icons@gnome-shell-extensions.gcampax.github.com
+sysmonitor@talhasiddique7
+system-monitor@gnome-shell-extensions.gcampax.github.com
+tiling-assistant@ubuntu.com
+ubuntu-appindicators@ubuntu.com
+ubuntu-dock@ubuntu.com
+user-theme@gnome-shell-extensions.gcampax.github.com
+web-search-provider@ubuntu.com
+window-list@gnome-shell-extensions.gcampax.github.com
+windowsNavigator@gnome-shell-extensions.gcampax.github.com
+workspace-indicator@gnome-shell-extensions.gcampax.github.com

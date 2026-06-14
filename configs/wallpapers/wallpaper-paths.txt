@@ -1,0 +1,3 @@
+# 当前壁纸
+picture-uri: file:///home/heidis/.local/share/backgrounds/MacTahoe-day.jpeg
+picture-uri-dark: file:///home/heidis/.local/share/backgrounds/MacTahoe-day.jpeg

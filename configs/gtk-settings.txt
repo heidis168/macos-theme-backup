@@ -1,0 +1,24 @@
+### GTK & Interface 主题
+'MacTahoe-Light'
+'MacTahoe'
+'MacTahoe-light'
+'prefer-dark'
+'MacTahoe-Light'
+'MacTahoe-Dark'
+
+### 桌面背景 & 锁屏
+'file:///home/heidis/.local/share/backgrounds/MacTahoe-day.jpeg'
+'file:///home/heidis/.local/share/backgrounds/MacTahoe-day.jpeg'
+'file:///home/heidis/.local/share/backgrounds/MacTahoe-day.jpeg'
+'Ubuntu Sans 11'
+'Ubuntu Serif 11'
+'Ubuntu Sans Mono 12'
+
+### Shell 杂项
+false
+true
+':minimize,maximize,close'
+### Interface 字体
+'Ubuntu Sans 11'
+'Ubuntu Serif 11'
+'Ubuntu Sans Mono 12'
