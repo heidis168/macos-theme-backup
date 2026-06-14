@@ -86,6 +86,15 @@ if [ -d "$CONFIG/gtk4-css" ]; then
         cp "$css" ~/.config/gtk-4.0/ 2>/dev/null
         echo "  ✓ $(basename "$css")"
     done
+    # 复制窗口按钮 assets（解决按钮消失问题）
+    if [ -d "$CONFIG/gtk4-css/windows-assets" ]; then
+        cp -r "$CONFIG/gtk4-css/windows-assets" ~/.config/gtk-4.0/ 2>/dev/null
+        echo "  ✓ windows-assets/ (80 文件)"
+    fi
+    if [ -d "$CONFIG/gtk4-css/assets" ]; then
+        cp -r "$CONFIG/gtk4-css/assets" ~/.config/gtk-4.0/ 2>/dev/null
+        echo "  ✓ assets/ (127 文件)"
+    fi
 fi
 
 # === 壁纸 ===
