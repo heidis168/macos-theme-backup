@@ -1,24 +1,44 @@
-### GTK & Interface 主题
-'MacTahoe-Light'
-'MacTahoe'
-'MacTahoe-light'
-'prefer-dark'
-'MacTahoe-Light'
-'MacTahoe-Dark'
+# ============================================
+# GTK / Shell / Interface 全部 gsettings
+# 格式: schema key = value
+# ============================================
 
-### 桌面背景 & 锁屏
-'file:///home/heidis/.local/share/backgrounds/MacTahoe-day.jpeg'
-'file:///home/heidis/.local/share/backgrounds/MacTahoe-day.jpeg'
-'file:///home/heidis/.local/share/backgrounds/MacTahoe-day.jpeg'
-'Ubuntu Sans 11'
-'Ubuntu Serif 11'
-'Ubuntu Sans Mono 12'
+org.gnome.desktop.interface gtk-theme = 'MacTahoe-Light'
+org.gnome.desktop.interface icon-theme = 'MacTahoe'
+org.gnome.desktop.interface cursor-theme = 'MacTahoe-light'
+org.gnome.desktop.interface color-scheme = 'prefer-dark'
+org.gnome.desktop.interface font-name = 'Ubuntu Sans 11'
+org.gnome.desktop.interface document-font-name = 'Ubuntu Serif 11'
+org.gnome.desktop.interface monospace-font-name = 'Ubuntu Sans Mono 12'
+org.gnome.desktop.interface enable-hot-corners = false
+org.gnome.desktop.interface show-battery-percentage = false
 
-### Shell 杂项
-false
-true
-':minimize,maximize,close'
-### Interface 字体
-'Ubuntu Sans 11'
-'Ubuntu Serif 11'
-'Ubuntu Sans Mono 12'
+org.gnome.desktop.wm.preferences theme = 'MacTahoe-Light'
+org.gnome.desktop.wm.preferences button-layout = ':minimize,maximize,close'
+
+org.gnome.desktop.background picture-uri = 'file:///home/heidis/.local/share/backgrounds/MacTahoe-day.jpeg'
+org.gnome.desktop.background picture-uri-dark = 'file:///home/heidis/.local/share/backgrounds/MacTahoe-day.jpeg'
+
+org.gnome.desktop.screensaver picture-uri = 'file:///home/heidis/.local/share/backgrounds/MacTahoe-day.jpeg'
+
+org.gnome.mutter center-new-windows = true
+
+org.gnome.shell.extensions.user-theme name = 'MacTahoe-Dark'
+
+org.gnome.desktop.interface clock-format = '24h'
+org.gnome.desktop.interface clock-show-seconds = false
+org.gnome.desktop.interface clock-show-weekday = false
+
+org.gnome.desktop.wm.preferences focus-mode = 'click'
+org.gnome.desktop.wm.preferences auto-raise = false
+org.gnome.desktop.wm.preferences num-workspaces = 4
+
+org.gnome.desktop.peripherals.touchpad natural-scroll = true
+org.gnome.desktop.peripherals.touchpad speed = 0.0
+org.gnome.desktop.peripherals.mouse speed = 0.0
+
+org.gnome.shell favorite-apps = ['net.nokyan.Resources.desktop', 'org.gnome.Nautilus.desktop', 'snap-store_snap-store.desktop', 'google-chrome.desktop', 'Hermes.desktop']
+
+# 以下启用/禁用扩展需手动安装后启用
+# org.gnome.shell enabled-extensions = ['add-to-desktop@tommimon.github.com', 'ding@rastersoft.com', 'snapd-prompting@canonical.com', 'snapd-search-provider@canonical.com', 'ubuntu-appindicators@ubuntu.com', 'ubuntu-dock@ubuntu.com', 'tiling-assistant@ubuntu.com', 'web-search-provider@ubuntu.com', 'System_Monitor@bghome.gmail.com', 'application-hotkeys@aaimio.github.com', 'sysmonitor@talhasiddique7', 'apps-menu@gnome-shell-extensions.gcampax.github.com', 'logomenu@aryan_k', 'blur-my-shell@aunetx', 'user-theme@gnome-shell-extensions.gcampax.github.com']
+# org.gnome.shell disabled-extensions = ['light-style@gnome-shell-extensions.gcampax.github.com', 'workspace-indicator@gnome-shell-extensions.gcampax.github.com', 'windowsNavigator@gnome-shell-extensions.gcampax.github.com', 'window-list@gnome-shell-extensions.gcampax.github.com', 'system-monitor@gnome-shell-extensions.gcampax.github.com', 'hidetopbar@mathieu.bidon.ca', 'apple-logo@hermes.local']

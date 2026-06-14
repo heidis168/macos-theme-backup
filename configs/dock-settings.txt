@@ -1,5 +1,7 @@
-### Dash-to-Dock 配置
----
+# ============================================
+# Dash-to-Dock 完整配置
+# 格式: key = value
+# ============================================
 extend-height = false
 autohide = false
 intellihide = true
@@ -11,8 +13,17 @@ dash-max-icon-size = 48
 transparency-mode = 'DYNAMIC'
 background-opacity = 0.14999999999999999
 isolate-locations = true
+show-mounts = true
+show-trash = true
+click-action = 'focus-or-appspread'
+scroll-action = 'switch-workspace'
+custom-theme-shrink = true
+disable-overview-on-startup = true
+apply-custom-theme = false
 
-### 已安装的 Shell 扩展
+# ============================================
+# 已安装的 GNOME Shell 扩展
+# ============================================
 add-to-desktop@tommimon.github.com
 apps-menu@gnome-shell-extensions.gcampax.github.com
 auto-move-windows@gnome-shell-extensions.gcampax.github.com
