@@ -103,19 +103,11 @@ gsettings set org.gnome.desktop.background picture-uri-dark "'$WP_PATH'"
 gsettings set org.gnome.desktop.screensaver picture-uri "'$WP_PATH'"
 echo "🖼️  壁纸: $WP_PATH"
 
-# === 启用扩展 ===
+# === 启用扩展（使用配置文件精确列表，不自动全开） ===
 echo "🔌 管理 Shell 扩展..."
-LOCAL_EXTS=$(ls "$HOME/.local/share/gnome-shell/extensions/" 2>/dev/null | tr '\n' ' ')
-SYS_EXTS=$(ls /usr/share/gnome-shell/extensions/ 2>/dev/null | tr '\n' ' ')
-ALL_EXTS="$LOCAL_EXTS $SYS_EXTS"
-ARRAY="["
-for ext in $ALL_EXTS; do
-    [ -z "$ext" ] && continue
-    ARRAY="$ARRAY'$ext', "
-done
-ARRAY="${ARRAY%, }]"
-gsettings set org.gnome.shell enabled-extensions "$ARRAY" 2>/dev/null
-echo "  ✓ 已启用 $(echo $ALL_EXTS | wc -w) 个扩展"
+# gtk-settings.txt 中已设置 enabled-extensions + disabled-extensions
+# 无需额外操作，gsettings 恢复步骤已处理
+echo "  ✓ 扩展启用/禁用已按配置精确恢复"
 
 # === 清理 ===
 rm -rf "$TMP_CONFIG"

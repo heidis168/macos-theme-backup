@@ -68,6 +68,8 @@ org.gnome.shell start-in-overview = false
 org.gnome.shell favorite-apps = ['net.nokyan.Resources.desktop', 'org.gnome.Nautilus.desktop', 'snap-store_snap-store.desktop', 'google-chrome.desktop', 'Hermes.desktop']
 org.gnome.shell disabled-extensions = ['light-style@gnome-shell-extensions.gcampax.github.com', 'workspace-indicator@gnome-shell-extensions.gcampax.github.com', 'windowsNavigator@gnome-shell-extensions.gcampax.github.com', 'window-list@gnome-shell-extensions.gcampax.github.com', 'system-monitor@gnome-shell-extensions.gcampax.github.com']
 
+org.gnome.shell enabled-extensions = ['add-to-desktop@tommimon.github.com', 'ding@rastersoft.com', 'snapd-prompting@canonical.com', 'snapd-search-provider@canonical.com', 'ubuntu-appindicators@ubuntu.com', 'ubuntu-dock@ubuntu.com', 'tiling-assistant@ubuntu.com', 'web-search-provider@ubuntu.com', 'sysmonitor@talhasiddique7', 'apps-menu@gnome-shell-extensions.gcampax.github.com', 'logomenu@aryan_k', 'blur-my-shell@aunetx', 'user-theme@gnome-shell-extensions.gcampax.github.com']
+
 # --- Peripherals ---
 org.gnome.desktop.peripherals.touchpad natural-scroll = true
 org.gnome.desktop.peripherals.touchpad speed = 0.0
