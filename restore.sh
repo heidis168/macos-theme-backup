@@ -1,7 +1,7 @@
 #!/bin/bash
 # ==========================================
 # 桌面主题配置一键恢复脚本
-# 恢复全部 GNOME 主题、Dock、GTK4 CSS、壁纸、字体
+# 恢复全部 GNOME 主题、Dock、GTK4 CSS、壁纸、字体、dconf 扩展配置
 # ==========================================
 set -e
 
@@ -31,7 +31,7 @@ while IFS='=' read -r line; do
     gsettings set "$schema" "$key" "$val" 2>/dev/null && echo "  ✓ $schema_key" || echo "  ✗ $schema_key (跳过)"
 done < "$CONFIG/gtk-settings.txt"
 
-# === Dash-to-Dock ===
+# === Dash-to-Dock (gsettings) ===
 echo "📦 恢复 Dock 配置..."
 DOCK_SCHEMA="org.gnome.shell.extensions.dash-to-dock"
 while IFS='=' read -r line; do
@@ -42,6 +42,21 @@ while IFS='=' read -r line; do
     [ -z "$key" ] || [ -z "$val" ] && continue
     gsettings set "$DOCK_SCHEMA" "$key" "$val" 2>/dev/null && echo "  ✓ $key" || echo "  ✗ $key (跳过)"
 done < "$CONFIG/dock-settings.txt"
+
+# === dconf: 扩展配置 (blur-my-shell, logo-menu, ding, dash-to-dock 等) ===
+echo "🔧 恢复扩展内部配置 (dconf)..."
+if [ -f "$CONFIG/dconf/extensions.conf" ]; then
+    dconf load /org/gnome/shell/extensions/ < "$CONFIG/dconf/extensions.conf"
+    echo "  ✓ 扩展配置已恢复 (blur-my-shell, logo-menu, ding, appindicator ...)"
+fi
+if [ -f "$CONFIG/dconf/background.conf" ]; then
+    dconf load /org/gnome/desktop/background/ < "$CONFIG/dconf/background.conf"
+    echo "  ✓ 桌面背景 dconf 已恢复"
+fi
+if [ -f "$CONFIG/dconf/screensaver.conf" ]; then
+    dconf load /org/gnome/desktop/screensaver/ < "$CONFIG/dconf/screensaver.conf"
+    echo "  ✓ 锁屏 dconf 已恢复"
+fi
 
 # === GTK4 CSS ===
 if [ -d "$CONFIG/gtk4-css" ]; then
