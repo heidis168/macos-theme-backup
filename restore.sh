@@ -81,7 +81,12 @@ WP_PATH="file://$WP_DIR/MacTahoe-day.jpeg"
 gsettings set org.gnome.desktop.background picture-uri "'$WP_PATH'" 2>/dev/null
 gsettings set org.gnome.desktop.background picture-uri-dark "'$WP_PATH'" 2>/dev/null
 gsettings set org.gnome.desktop.screensaver picture-uri "'$WP_PATH'" 2>/dev/null
-echo "🖼️  壁纸路径已修正为当前用户"
+echo "🖼️  壁纸路径已修正: $WP_PATH"
+
+# 强制确认路径（gsettings 可能被配置文件覆盖）
+gsettings set org.gnome.desktop.background picture-uri "'$WP_PATH'"
+gsettings set org.gnome.desktop.background picture-uri-dark "'$WP_PATH'"
+gsettings set org.gnome.desktop.screensaver picture-uri "'$WP_PATH'"
 
 # === 启用扩展 + 设置禁用列表 ===
 echo "🔌 管理 Shell 扩展..."
