@@ -5,6 +5,18 @@
 
 全新系统 → 一条命令恢复完全一致的 macOS 风格。
 
+## 效果展示
+
+![桌面](screenshots/2026-06-15-02-01-20.png)
+
+![Dock 和窗口](screenshots/2026-06-15-02-01-26.png)
+
+![应用概览](screenshots/2026-06-15-02-01-33.png)
+
+![Nautilus 文件管理器](screenshots/2026-06-15-02-01-49.png)
+
+![设置](screenshots/2026-06-15-02-01-59.png)
+
 ## 使用
 
 ```bash
