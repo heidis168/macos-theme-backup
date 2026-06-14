@@ -1,7 +1,7 @@
 #!/bin/bash
 # ==========================================
 # 桌面主题配置一键恢复脚本
-# 恢复全部 GNOME 主题、Dock、GTK4 CSS、壁纸设置
+# 恢复全部 GNOME 主题、Dock、GTK4 CSS、壁纸、字体
 # ==========================================
 set -e
 
@@ -10,6 +10,15 @@ CONFIG="$DIR/configs"
 
 echo "🔄 正在恢复桌面主题配置..."
 
+# === SF 字体 ===
+if [ -d "$DIR/fonts/SanFrancisco" ]; then
+    echo "🔤 安装 San Francisco 字体..."
+    mkdir -p ~/.local/share/fonts/SanFrancisco
+    cp "$DIR/fonts/SanFrancisco/"*.otf ~/.local/share/fonts/SanFrancisco/ 2>/dev/null
+    fc-cache -f 2>/dev/null
+    echo "  ✓ SF 字体已安装"
+fi
+
 # === GTK/Shell/Interface (含 favorite-apps, 时钟, 触摸板等) ===
 echo "🎨 恢复 GTK/Shell/界面设置..."
 while IFS='=' read -r line; do
@@ -17,7 +26,6 @@ while IFS='=' read -r line; do
     schema_key=$(echo "$line" | awk -F' = ' '{print $1}' | xargs)
     schema=$(echo "$schema_key" | awk '{print $1}')
     key=$(echo "$schema_key" | awk '{print $2}')
-    # 值可能包含 = 和引号，用 shell 方式提取
     val=$(echo "$line" | sed "s/^[^=]* = //")
     [ -z "$schema" ] || [ -z "$key" ] || [ -z "$val" ] && continue
     gsettings set "$schema" "$key" "$val" 2>/dev/null && echo "  ✓ $schema_key" || echo "  ✗ $schema_key (跳过)"
@@ -28,7 +36,7 @@ echo "📦 恢复 Dock 配置..."
 DOCK_SCHEMA="org.gnome.shell.extensions.dash-to-dock"
 while IFS='=' read -r line; do
     [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
-    [[ "$line" =~ ^[[:space:]]*add-to-desktop ]] && break  # 到扩展列表就停
+    [[ "$line" =~ ^[[:space:]]*add-to-desktop ]] && break
     key=$(echo "$line" | awk -F' = ' '{print $1}' | xargs)
     val=$(echo "$line" | sed "s/^[^=]* = //")
     [ -z "$key" ] || [ -z "$val" ] && continue
@@ -54,18 +62,26 @@ if [ -f "$CONFIG/wallpapers/MacTahoe-day.jpeg" ]; then
     echo "🖼️  壁纸已恢复"
 fi
 
-# 修正壁纸路径为当前用户 (gsettings 中存的是旧用户路径)
 WP_PATH="file://$WP_DIR/MacTahoe-day.jpeg"
 gsettings set org.gnome.desktop.background picture-uri "'$WP_PATH'" 2>/dev/null
 gsettings set org.gnome.desktop.background picture-uri-dark "'$WP_PATH'" 2>/dev/null
 gsettings set org.gnome.desktop.screensaver picture-uri "'$WP_PATH'" 2>/dev/null
 echo "🖼️  壁纸路径已修正为当前用户"
 
+# === 启用扩展 + 设置禁用列表 ===
+echo "🔌 管理 Shell 扩展..."
+LOCAL_EXTS=$(ls "$HOME/.local/share/gnome-shell/extensions/" 2>/dev/null | tr '\n' ' ')
+SYS_EXTS=$(ls /usr/share/gnome-shell/extensions/ 2>/dev/null | tr '\n' ' ')
+ALL_EXTS="$LOCAL_EXTS $SYS_EXTS"
+ARRAY="["
+for ext in $ALL_EXTS; do
+    [ -z "$ext" ] && continue
+    ARRAY="$ARRAY'$ext', "
+done
+ARRAY="${ARRAY%, }]"
+gsettings set org.gnome.shell enabled-extensions "$ARRAY" 2>/dev/null
+echo "  ✓ 已启用 $(echo $ALL_EXTS | wc -w) 个扩展"
+
 echo ""
 echo "✅ 恢复完成！"
 echo "请按 Alt+F2 → r → 回车 重启 GNOME Shell 使主题生效。"
-echo ""
-echo "⚠️  扩展需要自行安装："
-echo "   - 系统扩展: gnome-shell-extension-manager (软件中心可装)"
-echo "   - blur-my-shell: https://extensions.gnome.org/extension/3193/blur-my-shell/"
-echo "   - logo-menu: 同上"

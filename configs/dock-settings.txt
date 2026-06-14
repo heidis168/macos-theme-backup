@@ -1,5 +1,5 @@
 # ============================================
-# Dash-to-Dock 完整配置
+# Dash-to-Dock 完整配置（全部非默认键）
 # 格式: key = value
 # ============================================
 extend-height = false
@@ -20,6 +20,36 @@ scroll-action = 'switch-workspace'
 custom-theme-shrink = true
 disable-overview-on-startup = true
 apply-custom-theme = false
+activate-single-window = true
+apply-glossy-effect = true
+autohide-in-fullscreen = false
+background-color = '#ffffff'
+bolt-support = true
+custom-background-color = false
+customize-alphas = true
+dance-urgent-applications = true
+force-straight-corner = false
+height-fraction = 0.9
+hide-delay = 0.2
+hide-tooltip = false
+hot-keys = true
+hotkeys-overlay = true
+hotkeys-show-dock = true
+icon-size-fixed = true
+intellihide-mode = 'ALL_WINDOWS'
+isolate-monitors = false
+isolate-workspaces = false
+manualhide = false
+max-alpha = 0.95
+min-alpha = 0.4
+preferred-monitor-by-connector = 'Virtual-1'
+require-pressure-to-show = false
+running-indicator-style = 'DOTS'
+shift-click-action = 'launch'
+shift-middle-click-action = 'minimize'
+show-dock-urgent-notify = false
+show-mounts-network = true
+show-mounts-only-mounted = false
 
 # ============================================
 # 已安装的 GNOME Shell 扩展
