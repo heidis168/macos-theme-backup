@@ -1,65 +1,70 @@
 #!/bin/bash
 # ==========================================
-# 全新系统引导安装脚本（完全离线）
-# 从本地打包的主题/扩展/字体/配置 一键恢复
+# macOS 风格桌面一键恢复（全新系统 → 完全一致）
 # 用法: ./bootstrap.sh
+# 完成后: 注销重新登录
 # ==========================================
 set -e
-
 DIR="$(cd "$(dirname "$0")" && pwd)"
 
-echo "🛠️  开始全新系统 macOS 风格安装（离线模式）..."
+echo "🛠️  macOS 风格桌面 — 一键恢复"
+echo "================================"
 echo ""
 
-# === 1. 系统依赖 ===
-echo "📦 安装系统依赖..."
-sudo apt update -qq
-sudo apt install -y -qq gnome-shell-extensions sassc gedit gnome-tweaks gnome-shell-extension-manager 2>/dev/null || true
+# 1. 依赖
+echo "📦 系统依赖..."
+sudo apt update -qq && sudo apt install -y -qq gnome-shell-extensions sassc gedit gnome-tweaks gnome-shell-extension-manager imagemagick 2>/dev/null
+echo "  ✓ 完成"
 
-# === 2. 直接复制已编译主题（跳过不可靠的 install.sh） ===
+# 2. GTK 主题（预编译，跳过不可靠的 install.sh）
 echo ""
-echo "🎨 安装 GTK 主题（预编译）..."
-mkdir -p ~/.themes
-cp -r "$DIR/themes-installed/"* ~/.themes/ 2>/dev/null
-echo "  ✓ GTK 主题: $(ls ~/.themes/ 2>/dev/null | wc -l) 个变体"
+echo "🎨 GTK 主题..."
+mkdir -p ~/.themes && cp -r "$DIR/themes-installed/"* ~/.themes/ 2>/dev/null
+echo "  ✓ $(ls ~/.themes/ 2>/dev/null | wc -l) 个变体"
 
-# === 3. 图标主题（用 install.sh，这个可靠） ===
+# 3. 图标主题
 echo ""
-echo "🎨 安装 MacTahoe 图标主题..."
-cd "$DIR/themes/MacTahoe-icon-theme"
-./install.sh 2>&1 | tail -3
+echo "🎨 图标主题..."
+cd "$DIR/themes/MacTahoe-icon-theme" && ./install.sh 2>&1 | tail -1
+cd "$DIR"
 
-# === 4. GNOME Shell 主题 ===
+# 4. Shell 主题 (需要 sudo 安装到 /usr/share)
 echo ""
-echo "🎨 安装 GNOME Shell 主题..."
+echo "🎨 Shell 主题..."
 cd "$DIR/themes/MacTahoe-gtk-theme"
-sudo ./install.sh -c light -b --round --shell -i apple 2>&1 | tail -5
+./install.sh -c light -b --round -l --shell -i apple 2>&1 | tail -2
+cd "$DIR"
 
-# === 5. 扩展 ===
+# 5. GDM 登录主题
 echo ""
-echo "🔌 安装 GNOME Shell 扩展..."
+echo "🔐 GDM 登录主题..."
+sudo ./themes/MacTahoe-gtk-theme/tweaks.sh -g 2>&1 | tail -2
+echo "  ✓ 已安装"
+
+# 6. 扩展
+echo ""
+echo "🔌 Shell 扩展..."
 EXT_DIR="$HOME/.local/share/gnome-shell/extensions"
 mkdir -p "$EXT_DIR"
 for ext in "$DIR/extensions/"*; do
-    [ -d "$ext" ] || continue
-    extname=$(basename "$ext")
-    cp -r "$ext" "$EXT_DIR/$extname"
-    echo "  ✓ $extname"
+    [ -d "$ext" ] && cp -r "$ext" "$EXT_DIR/$(basename "$ext")" && echo "  ✓ $(basename "$ext")"
 done
 
-# === 6. 恢复全部配置（字体 + gsettings + dconf + 壁纸 + 扩展启用） ===
+# 7. 编译扩展 schemas
+for ext in "$EXT_DIR"/*/schemas; do
+    [ -d "$ext" ] && glib-compile-schemas "$ext" 2>/dev/null
+done
+
+# 8. 恢复全部配置（gsettings + dconf + 字体 + 壁纸 + GTK4 CSS）
 echo ""
-echo "🔄 恢复全部配置..."
-cd "$DIR"
-chmod +x restore.sh
-./restore.sh
+echo "🔄 配置恢复..."
+chmod +x "$DIR/restore.sh"
+"$DIR/restore.sh"
 
 echo ""
-echo "========================================"
-echo "✅ 全新安装完成！"
+echo "================================"
+echo "✅ 安装完成"
 echo ""
-echo "💡 可选：安装 GDM 登录界面主题"
-echo "   cd themes/MacTahoe-gtk-theme && sudo ./tweaks.sh -g"
-echo ""
-echo "重启 Shell: Alt+F2 → r → 回车"
-echo "========================================"
+echo "⚠️  请立即执行：注销 → 重新登录"
+echo "   所有主题、锁屏、Dock、模糊效果才会生效"
+echo "================================"
