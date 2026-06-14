@@ -54,6 +54,13 @@ if [ -f "$CONFIG/wallpapers/MacTahoe-day.jpeg" ]; then
     echo "🖼️  壁纸已恢复"
 fi
 
+# 修正壁纸路径为当前用户 (gsettings 中存的是旧用户路径)
+WP_PATH="file://$WP_DIR/MacTahoe-day.jpeg"
+gsettings set org.gnome.desktop.background picture-uri "'$WP_PATH'" 2>/dev/null
+gsettings set org.gnome.desktop.background picture-uri-dark "'$WP_PATH'" 2>/dev/null
+gsettings set org.gnome.desktop.screensaver picture-uri "'$WP_PATH'" 2>/dev/null
+echo "🖼️  壁纸路径已修正为当前用户"
+
 echo ""
 echo "✅ 恢复完成！"
 echo "请按 Alt+F2 → r → 回车 重启 GNOME Shell 使主题生效。"

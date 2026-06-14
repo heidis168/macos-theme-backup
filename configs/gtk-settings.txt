@@ -20,6 +20,7 @@ org.gnome.desktop.background picture-uri = 'file:///home/heidis/.local/share/bac
 org.gnome.desktop.background picture-uri-dark = 'file:///home/heidis/.local/share/backgrounds/MacTahoe-day.jpeg'
 
 org.gnome.desktop.screensaver picture-uri = 'file:///home/heidis/.local/share/backgrounds/MacTahoe-day.jpeg'
+# ⚠️ 以上壁纸路径会被 restore.sh 自动替换为当前用户 $HOME
 
 org.gnome.mutter center-new-windows = true
 
