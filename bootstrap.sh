@@ -69,7 +69,23 @@ else
     echo "  ⚠ Shell 主题源码缺失，跳过"
 fi
 
-# ====== 6. GDM 登录主题 ======
+# ====== 6. Plymouth 启动界面 ======
+echo ""
+echo "🍎 Plymouth 启动主题..."
+if [ -d "$DIR/plymouth/mac" ]; then
+    sudo cp -r "$DIR/plymouth/mac" /usr/share/plymouth/themes/
+    sudo update-alternatives --install \
+        /usr/share/plymouth/themes/default.plymouth \
+        default.plymouth \
+        /usr/share/plymouth/themes/mac/mac.plymouth \
+        200
+    sudo update-initramfs -u 2>&1 | tail -1
+    echo "  ✓ 已安装（重启生效）"
+else
+    echo "  ⚠ plymouth 主题缺失，跳过"
+fi
+
+# ====== 7. GDM 登录主题 ======
 echo ""
 echo "🔐 GDM 登录主题..."
 if [ -f "$DIR/themes/MacTahoe-gtk-theme/tweaks.sh" ]; then
@@ -79,7 +95,7 @@ else
     echo "  ⚠ tweaks.sh 缺失，跳过"
 fi
 
-# ====== 7. 配置恢复（字体/壁纸/gsettings/dconf/GTK4 CSS/图标缓存） ======
+# ====== 8. 配置恢复（字体/壁纸/gsettings/dconf/GTK4 CSS/图标缓存） ======
 echo ""
 echo "🔄 配置恢复..."
 chmod +x "$DIR/restore.sh"
