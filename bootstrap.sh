@@ -73,12 +73,12 @@ fi
 echo ""
 echo "🍎 Plymouth 启动主题..."
 if [ -d "$DIR/plymouth/mac" ]; then
-    sudo cp -r "$DIR/plymouth/mac" /usr/share/plymouth/themes/
+    sudo cp -r "$DIR/plymouth/mac" /usr/share/plymouth/themes/mac-improved
     sudo update-alternatives --install \
         /usr/share/plymouth/themes/default.plymouth \
         default.plymouth \
-        /usr/share/plymouth/themes/mac/mac.plymouth \
-        200
+        /usr/share/plymouth/themes/mac-improved/mac.plymouth \
+        300
     sudo update-initramfs -u 2>&1 | tail -1
     echo "  ✓ 已安装（重启生效）"
 else

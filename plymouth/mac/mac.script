@@ -1,210 +1,199 @@
-#                              mac
-#          a modified version of Apple Mac Plymouth Bar
-#              originally created by Nilotpal Biswas
-# ------------------------[ Thank you ]-----------------------
+# ============================================================
+#  mac-improved — Apple-style Plymouth boot theme
+#  Enhanced with animated shimmer progress bar
+#  Based on fathyar/mac-plymouth
+# ============================================================
 
-logo.image = Image("boot.png");
+# ---- Background ----
 Window.SetBackgroundTopColor(0, 0, 0);
 Window.SetBackgroundBottomColor(0, 0, 0);
 
-if (Plymouth.GetMode () == "shutdown")
-# To increase the possibility of certain shutdown messages we do a little math
+# ---- Logo (Apple) ----
+logo.image = Image("boot.png");
+logo.sprite = Sprite(logo.image);
+logo.x = Window.GetX() + Window.GetWidth()  / 2 - logo.image.GetWidth()  / 2;
+logo.y = Window.GetY() + Window.GetHeight() / 2 - logo.image.GetHeight() / 1;
+logo.sprite.SetPosition(logo.x, logo.y, 0);
+logo.sprite.SetOpacity(1);
 
+# ---- Progress Bar (boot mode only) ----
+shimmer_offset = 0.0;
+shimmer_speed = 2.5;  # pixels per frame
+
+if (Plymouth.GetMode() == "boot")
 {
-  a = Math.Random ();
+  # Track (background box)
+  progress_box.image = Image("progress_box.png");
+  progress_box.sprite = Sprite(progress_box.image);
+  progress_box.x = Window.GetX() + Window.GetWidth() / 2 - progress_box.image.GetWidth() / 2;
+  progress_box.y = Window.GetY() + Window.GetHeight() * 0.72;
+  progress_box.sprite.SetPosition(progress_box.x, progress_box.y, 0);
+
+  # Fill bar (scales with progress)
+  progress_bar.original_image = Image("progress_bar.png");
+  progress_bar.sprite = Sprite();
+  progress_bar.x = progress_box.x;
+  progress_bar.y = progress_box.y;
+  progress_bar.sprite.SetPosition(progress_bar.x, progress_bar.y, 1);
+
+  # Shimmer overlay (slides across the bar)
+  shimmer.image = Image("shimmer.png");
+  shimmer.sprite = Sprite(shimmer.image);
+  shimmer.sprite.SetOpacity(0.8);
+
+  # ---- Boot Progress: scale the fill bar ----
+  fun progress_callback (duration, progress)
+  {
+    if (progress_bar.image.GetWidth() != Math.Int(progress_bar.original_image.GetWidth() * progress))
+    {
+      progress_bar.image = progress_bar.original_image.Scale(
+        progress_bar.original_image.GetWidth() * progress,
+        progress_bar.original_image.GetHeight()
+      );
+      progress_bar.sprite.SetImage(progress_bar.image);
+    }
+  }
+  Plymouth.SetBootProgressFunction(progress_callback);
+
+  # ---- Refresh: animate shimmer sliding ----
+  fun refresh_callback ()
+  {
+    bar_width = progress_bar.image.GetWidth();
+    if (bar_width > shimmer.image.GetWidth())
+    {
+      shimmer_offset += shimmer_speed;
+      # Wrap around
+      if (shimmer_offset > bar_width)
+        shimmer_offset = -shimmer.image.GetWidth();
+
+      shimmer.sprite.SetPosition(
+        progress_bar.x + Math.Int(shimmer_offset),
+        progress_bar.y,
+        2
+      );
+    }
+  }
+  Plymouth.SetRefreshFunction(refresh_callback);
+}
+
+# ---- Shutdown mode: random frame ----
+if (Plymouth.GetMode() == "shutdown")
+{
+  a = Math.Random();
+  shutdown_index = 1;
   if (a <= 0.5)
     if (a <= 0.25)
       if (a <= 0.125)
         if (a <= 0.0625)
-          if (a <= 0.03125)
-            logo.image = Image("shutdown1.png");
-          else
-            logo.image = Image("shutdown2.png");
-        else
-          logo.image = Image("shutdown3.png");
-
-      else
-        logo.image = Image("shutdown4.png");
-
-    else
-      logo.image = Image("shutdown5.png");
-  
-  else
-    logo.image = Image("shutdown6.png");
+          if (a <= 0.03125) shutdown_index = 1;
+          else shutdown_index = 2;
+        else shutdown_index = 3;
+      else shutdown_index = 4;
+    else shutdown_index = 5;
+  else shutdown_index = 6;
+  logo.image = Image("shutdown" + shutdown_index + ".png");
+  logo.sprite.SetImage(logo.image);
 }
 
-
-logo.sprite = Sprite(logo.image);
-logo.sprite.SetX (Window.GetX() + Window.GetWidth()  / 2 - logo.image.GetWidth()  / 2);
-#logo.sprite.SetY (Window.GetY() + Window.GetHeight() / 2 - logo.image.GetHeight() / 2); # original
-logoYPosShutdownMode = Window.GetY() + Window.GetHeight() / 2 - logo.image.GetHeight() / 2;
-#logo.sprite.SetY (Window.GetY() + Window.GetHeight() / 2 - logo.image.GetHeight() / 1); # my change
-logoYPosBootMode = Window.GetY() + Window.GetHeight() / 2 - logo.image.GetHeight() / 1;
-
-# Set different Y position for logo for different modes
-if (Plymouth.GetMode () == "shutdown")
-{
-  logo.sprite.SetY (logoYPosShutdownMode);
-} 
-else
-{
-  # in boot mode
-  logo.sprite.SetY (logoYPosBootMode);
-}
-
-logo.sprite.SetOpacity (1);
-
-#----------------------------------------- Dialogue --------------------------------
-
-status = "normal";
-
+# ---- Password Dialog (disk encryption) ----
 fun dialog_setup()
-  {
-    local.box;
-    local.lock;
-    local.entry;
-    
-    box.image = Image("box.png");
-    lock.image = Image("lock.png");
-    entry.image = Image("entry.png");
-    
-    box.sprite = Sprite(box.image);
-    box.x = Window.GetX() + Window.GetWidth()  / 2 - box.image.GetWidth ()/2;
-    box.y = Window.GetY() + Window.GetHeight() / 2 - box.image.GetHeight()/2;
-    box.z = 10000;
-    box.sprite.SetPosition(box.x, box.y, box.z);
-    
-    lock.sprite = Sprite(lock.image);
-    lock.x = box.x + box.image.GetWidth()/2 - (lock.image.GetWidth() + entry.image.GetWidth()) / 2;
-    lock.y = box.y + box.image.GetHeight()/2 - lock.image.GetHeight()/2;
-    lock.z = box.z + 1;
-    lock.sprite.SetPosition(lock.x, lock.y, lock.z);
-    
-    entry.sprite = Sprite(entry.image);
-    entry.x = lock.x + lock.image.GetWidth();
-    entry.y = box.y + box.image.GetHeight()/2 - entry.image.GetHeight()/2;
-    entry.z = box.z + 1;
-    entry.sprite.SetPosition(entry.x, entry.y, entry.z);
-    
-    global.dialog.box = box;
-    global.dialog.lock = lock;
-    global.dialog.entry = entry;
-    global.dialog.bullet_image = Image("bullet.png");
-    dialog_opacity (1);
-  }
-    
+{
+  dialog.box_image = Image("box.png");
+  dialog.box_sprite = Sprite(dialog.box_image);
+  dialog.bx = Window.GetX() + Window.GetWidth()  / 2 - dialog.box_image.GetWidth() / 2;
+  dialog.by = Window.GetY() + Window.GetHeight() / 2 - dialog.box_image.GetHeight() / 2;
+  dialog.box_sprite.SetPosition(dialog.bx, dialog.by, 10000);
+
+  dialog.lock_image = Image("lock.png");
+  dialog.lock_sprite = Sprite(dialog.lock_image);
+  dialog.lx = dialog.bx + dialog.box_image.GetWidth() / 2 - (dialog.lock_image.GetWidth() + 200) / 2;
+  dialog.ly = dialog.by + dialog.box_image.GetHeight() / 2 - dialog.lock_image.GetHeight() / 2;
+  dialog.lock_sprite.SetPosition(dialog.lx, dialog.ly, 10001);
+
+  dialog.entry_image = Image("entry.png");
+  dialog.entry_sprite = Sprite(dialog.entry_image);
+  dialog.ex = dialog.lx + dialog.lock_image.GetWidth();
+  dialog.ey = dialog.by + dialog.box_image.GetHeight() / 2 - dialog.entry_image.GetHeight() / 2;
+  dialog.entry_sprite.SetPosition(dialog.ex, dialog.ey, 10001);
+
+  dialog.bullet_image = Image("bullet.png");
+  dialog.bullets = [];
+  dialog_opacity(1);
+}
+
 fun dialog_opacity(opacity)
-  {
-    dialog.box.sprite.SetOpacity (opacity);
-    dialog.lock.sprite.SetOpacity (opacity);
-    dialog.entry.sprite.SetOpacity (opacity);
-    for (index = 0; dialog.bullet[index]; index++)
-      {
-        dialog.bullet[index].sprite.SetOpacity(opacity);
-      }
-  }
+{
+  dialog.box_sprite.SetOpacity(opacity);
+  dialog.lock_sprite.SetOpacity(opacity);
+  dialog.entry_sprite.SetOpacity(opacity);
+  for (i = 0; dialog.bullets[i]; i++)
+    dialog.bullets[i].sprite.SetOpacity(opacity);
+}
 
 fun display_normal_callback ()
+{
+  if (global.dialog_visible)
   {
-    global.status = "normal";
-    if (global.dialog)
-      dialog_opacity (0);
+    dialog_opacity(0);
+    global.dialog_visible = 0;
   }
+}
 
 fun display_password_callback (prompt, bullets)
+{
+  if (!global.dialog_setup_done)
   {
-    global.status = "password";
-    if (!global.dialog)
-  dialog_setup();
-    else
-  dialog_opacity(1);
-    for (index = 0; dialog.bullet[index] || index < bullets; index++)
-      {
-        if (!dialog.bullet[index])
-          {
-            dialog.bullet[index].sprite = Sprite(dialog.bullet_image);
-            dialog.bullet[index].x = dialog.entry.x + index * dialog.bullet_image.GetWidth();
-            dialog.bullet[index].y = dialog.entry.y + dialog.entry.image.GetHeight() / 2 - dialog.bullet_image.GetHeight() / 2;
-            dialog.bullet[index].z = dialog.entry.z + 1;
-            dialog.bullet[index].sprite.SetPosition(dialog.bullet[index].x, dialog.bullet[index].y, dialog.bullet[index].z);
-          }
-        if (index < bullets)
-          dialog.bullet[index].sprite.SetOpacity(1);
-        else
-          dialog.bullet[index].sprite.SetOpacity(0);
-      }
+    dialog_setup();
+    global.dialog_setup_done = 1;
   }
+  global.dialog_visible = 1;
+  dialog_opacity(1);
+
+  for (i = 0; dialog.bullets[i] || i < bullets; i++)
+  {
+    if (!dialog.bullets[i])
+    {
+      dialog.bullets[i].sprite = Sprite(dialog.bullet_image);
+      dialog.bullets[i].sprite.SetPosition(
+        dialog.ex + i * dialog.bullet_image.GetWidth(),
+        dialog.ey + dialog.entry_image.GetHeight() / 2 - dialog.bullet_image.GetHeight() / 2,
+        10002
+      );
+    }
+    dialog.bullets[i].sprite.SetOpacity(i < bullets ? 1 : 0);
+  }
+}
 
 Plymouth.SetDisplayNormalFunction(display_normal_callback);
 Plymouth.SetDisplayPasswordFunction(display_password_callback);
 
-#----------------------------------------- Progress Bar --------------------------------
-
-if (Plymouth.GetMode () == "boot")
-{
-  progress_box.image = Image("progress_box.png");
-  progress_box.sprite = Sprite(progress_box.image);
-
-  progress_box.x = Window.GetX() + Window.GetWidth() / 2 - progress_box.image.GetWidth() / 2;
-  #change here
-  #progress_box.y = Window.GetY() + Window.GetHeight() * 0.65 - progress_box.image.GetHeight() / 2;
-  progress_box.y = Window.GetY() + Window.GetHeight() * 0.55 - progress_box.image.GetHeight() / 2; # my change
-  progress_box.sprite.SetPosition(progress_box.x, progress_box.y, 0);
-
-  progress_bar.original_image = Image("progress_bar.png");
-  progress_bar.sprite = Sprite();
-
-  progress_bar.x = Window.GetX() + Window.GetWidth()  / 2 - progress_bar.original_image.GetWidth() / 2;
-  #change here
-  #progress_bar.y = Window.GetY() + Window.GetHeight() / 2 * 1.3 - progress_box.image.GetHeight() / 2 + (progress_box.image.GetHeight() - progress_bar.original_image.GetHeight()) / 2;
-  progress_bar.y = Window.GetY() + Window.GetHeight() / 2 * 1.1 - progress_box.image.GetHeight() / 2 + (progress_box.image.GetHeight() - progress_bar.original_image.GetHeight()) / 2; # my change
-  progress_bar.sprite.SetPosition(progress_bar.x, progress_bar.y, 1);
-
-  fun progress_callback (duration, progress)
-    {
-      if (progress_bar.image.GetWidth () != Math.Int (progress_bar.original_image.GetWidth () * progress))
-        {
-          progress_bar.image = progress_bar.original_image.Scale(progress_bar.original_image.GetWidth(progress_bar.original_image) * progress, progress_bar.original_image.GetHeight());
-          progress_bar.sprite.SetImage (progress_bar.image);
-        }
-    }
-
-  Plymouth.SetBootProgressFunction(progress_callback);
-}
-
-#----------------------------------------- Quit --------------------------------
-
+# ---- Quit ----
 fun quit_callback ()
 {
-  logo.sprite.SetOpacity (1);
+  logo.sprite.SetOpacity(1);
 }
-
 Plymouth.SetQuitFunction(quit_callback);
 
-#----------------------------------------- Message --------------------------------
-
+# ---- Messages (debug, updates) ----
 message_sprites = [];
-message_sprite_count = 0;
-message_sprite_y = 10;
+message_count = 0;
+message_y = 10;
 
 fun display_message_callback (text)
 {
-  my_image = Image.Text(text, 1, 1, 1);
-  message_sprites[message_sprite_count] = Sprite(my_image);
-  message_sprites[message_sprite_count].SetPosition(10, message_sprite_y, 10000);
-  message_sprites[message_sprite_count].text = text;
-  message_sprite_count++;
-  message_sprite_y += my_image.GetHeight();
+  msg_img = Image.Text(text, 1, 1, 1);
+  message_sprites[message_count] = Sprite(msg_img);
+  message_sprites[message_count].SetPosition(10, message_y, 10000);
+  message_count++;
+  message_y += msg_img.GetHeight();
 }
 
 fun hide_message_callback (text)
 {
-  for (i = 0; i < message_sprite_count; i++)
-    {
-      if (message_sprites[i].text == text)
-        message_sprites[i] = NULL;
-    }
+  for (i = 0; i < message_count; i++)
+    if (message_sprites[i])
+      message_sprites[i] = NULL;
 }
 
-Plymouth.SetDisplayMessageFunction (display_message_callback);
-Plymouth.SetHideMessageFunction (hide_message_callback);
+Plymouth.SetDisplayMessageFunction(display_message_callback);
+Plymouth.SetHideMessageFunction(hide_message_callback);
