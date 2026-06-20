@@ -222,6 +222,7 @@ gnome-shell-extension-manager  imagemagick
 | 壁纸路径错误 | 硬编码了旧用户名 | restore.sh 中 `sed "s|/home/旧用户|$HOME|g"` |
 | 窗口不圆角 | Blur My Shell panel/corner-radius=0 覆盖 | `dconf write ...corner-radius 32` |
 | 启动界面不显示 | 未 update-initramfs | `sudo update-initramfs -u` |
+| 启动界面黑屏/无 logo | `mac.plymouth` 内 ImageDir/ScriptFile 指向 `/themes/mac/`，但实际装在 `mac-improved/` → 找不到资源 | 改为指向 `mac-improved` 后 `sudo update-initramfs -u`（bootstrap.sh 已自动 sed 修正） |
 | 恢复后"缺少组件" | 只恢复了 gsettings，dconf/文件缺失 | 确认完整执行 restore.sh 三层 |
 
 ---

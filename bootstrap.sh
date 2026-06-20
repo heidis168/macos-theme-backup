@@ -74,6 +74,11 @@ echo ""
 echo "🍎 Plymouth 启动主题..."
 if [ -d "$DIR/plymouth/mac" ]; then
     sudo cp -r "$DIR/plymouth/mac" /usr/share/plymouth/themes/mac-improved
+    # 关键修复：安装目录为 mac-improved，但 mac.plymouth 内部 ImageDir/ScriptFile
+    # 仍指向旧路径 .../themes/mac/ → 开机找不到资源，启动界面无法渲染。
+    # 复制后自动把内部路径改为实际安装目录，保持目录名与引用一致。
+    sudo sed -i 's|/usr/share/plymouth/themes/mac\b|/usr/share/plymouth/themes/mac-improved|g' \
+        /usr/share/plymouth/themes/mac-improved/mac.plymouth
     sudo update-alternatives --install \
         /usr/share/plymouth/themes/default.plymouth \
         default.plymouth \
