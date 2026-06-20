@@ -96,7 +96,27 @@ Theme=mac
 ShowDelay=0
 DeviceTimeout=8
 PLYCONF
-    sudo update-initramfs -u 2>&1 | tail -1
+    # ★ 让启动 logo 一开机就显示(而不是先跑一堆内核文字)：
+    # 现象根因 = 显卡驱动(amdgpu/i915/nouveau)默认不在 initramfs 里，
+    # 内核要等挂载根分区后才加载它，这之前 plymouth 没图形驱动只能显示文字。
+    # 解决 = 把显卡驱动 + 固件强制打进 initramfs 早期加载。
+    # ⚠ 注意 Ubuntu 26.04 用 dracut(不是 initramfs-tools)，必须用 dracut 语法。
+    if command -v dracut >/dev/null 2>&1; then
+        GPU_DRV=""
+        lspci -k 2>/dev/null | grep -iA3 -E "vga|3d|display" | grep -qi amdgpu && GPU_DRV="amdgpu"
+        lspci -k 2>/dev/null | grep -iA3 -E "vga|3d|display" | grep -qi i915   && GPU_DRV="$GPU_DRV i915"
+        lspci -k 2>/dev/null | grep -iA3 -E "vga|3d|display" | grep -qi nouveau && GPU_DRV="$GPU_DRV nouveau"
+        if [ -n "$GPU_DRV" ]; then
+            sudo mkdir -p /etc/dracut.conf.d
+            # force_drivers 让驱动早期加载；hostonly-no 时 dracut 会带上其固件
+            printf 'force_drivers+=" %s "\nearly_microcode=yes\n' "$GPU_DRV" \
+                | sudo tee /etc/dracut.conf.d/90-gpu-early.conf > /dev/null
+            echo "  ✓ 显卡驱动 ($GPU_DRV) 设为 initramfs 早期加载"
+        fi
+        sudo dracut -f /boot/initrd.img-"$(uname -r)" "$(uname -r)" 2>&1 | tail -1
+    else
+        sudo update-initramfs -u 2>&1 | tail -1
+    fi
     echo "  ✓ 已安装（重启生效）"
 else
     echo "  ⚠ plymouth 主题缺失，跳过"
