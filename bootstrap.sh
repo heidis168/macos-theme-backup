@@ -115,6 +115,25 @@ else
     echo "  ⚠ tweaks.sh 缺失，跳过"
 fi
 
+# ====== 7b. GDM 登录框底部中央 logo → 苹果 ======
+# 登录框下方那个 logo 由 org.gnome.login-screen.logo 控制，
+# Ubuntu 用 /usr/share/glib-2.0/schemas/10_ubuntu-settings.gschema.override
+# 硬编码成 ubuntu-logo-text-dark.svg —— 优先级高于 greeter.dconf-defaults，
+# 只能用标准 dconf profile(system-db:gdm) 才能覆盖。
+echo ""
+echo "🍎 GDM 底部 logo → 苹果..."
+if [ -f "$DIR/configs/gdm-logo/apple-logo-white.svg" ]; then
+    sudo cp "$DIR/configs/gdm-logo/apple-logo-white.svg" /usr/share/pixmaps/apple-logo-white.svg
+    sudo chmod 644 /usr/share/pixmaps/apple-logo-white.svg
+    sudo mkdir -p /etc/dconf/profile /etc/dconf/db/gdm.d
+    printf 'user-db:user\nsystem-db:gdm\nfile-db:/usr/share/gdm/greeter-dconf-defaults\n' | sudo tee /etc/dconf/profile/gdm > /dev/null
+    printf "[org/gnome/login-screen]\nlogo='/usr/share/pixmaps/apple-logo-white.svg'\n" | sudo tee /etc/dconf/db/gdm.d/01-apple-logo > /dev/null
+    sudo dconf update
+    echo "  ✓ 已设置（重启 GDM 生效）"
+else
+    echo "  ⚠ apple-logo-white.svg 缺失，跳过"
+fi
+
 # ====== 8. 配置恢复（字体/壁纸/gsettings/dconf/GTK4 CSS/图标缓存） ======
 echo ""
 echo "🔄 配置恢复..."

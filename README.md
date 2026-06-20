@@ -226,6 +226,7 @@ gnome-shell-extension-manager  imagemagick
 | 启动界面一闪而过看不见 | NVMe 等快速硬件 + `GRUB_TIMEOUT=0` | `plymouthd.conf` 设 `DeviceTimeout=8`，并把 `GRUB_TIMEOUT` 改为 3 后 `update-grub` |
 | 开机先滚动一堆代码/文字再出 logo | 内核命令行去掉了 `quiet`，或加了 `plymouth.debug`（通常是调试残留） | 确保 `/etc/default/grub` 的 `GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"`，去掉 `plymouth.debug`，再 `sudo update-grub` |
 | 登录界面(GDM)显示 Ubuntu logo 而非苹果 | MacTahoe GDM 主题被系统更新重置，Yaru gresource 还原回 Ubuntu 默认 | 重跑 `sudo themes/MacTahoe-gtk-theme/tweaks.sh -g -i apple`，再重启 GDM/整机；验证 Yaru `gnome-shell-theme.gresource` 旁有 `.bak` 且本体被更新 |
+| 登录框底部中央仍是 Ubuntu 橙色 logo | 该 logo 由 `org.gnome.login-screen.logo` 控制，Ubuntu 在 `10_ubuntu-settings.gschema.override` 硬编码成 `ubuntu-logo-text-dark.svg`，优先级高于 `greeter.dconf-defaults` | 用标准 dconf profile 覆盖：建 `/etc/dconf/profile/gdm`(含 `system-db:gdm`) + `/etc/dconf/db/gdm.d/01-apple-logo`(设 `logo='/usr/share/pixmaps/apple-logo-white.svg'`) + `sudo dconf update`；验证 `DCONF_PROFILE=gdm dconf read /org/gnome/login-screen/logo` |
 | 恢复后"缺少组件" | 只恢复了 gsettings，dconf/文件缺失 | 确认完整执行 restore.sh 三层 |
 
 ---
