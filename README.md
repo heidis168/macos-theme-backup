@@ -225,6 +225,7 @@ gnome-shell-extension-manager  imagemagick
 | 启动显示 Ubuntu logo 而非苹果 logo | **主题装到了非标准目录名(如 mac-improved)** → Ubuntu initramfs hook 只为标准目录复制 PNG 资源，boot.png 缺失，plymouth 回退默认 logo | 必须装到 `/usr/share/plymouth/themes/**mac**/`(标准名)，再 `update-initramfs -u`；验证 `lsinitramfs /boot/initrd.img-$(uname -r) \| grep mac/boot.png` 应有输出 |
 | 启动界面一闪而过看不见 | NVMe 等快速硬件 + `GRUB_TIMEOUT=0` | `plymouthd.conf` 设 `DeviceTimeout=8`，并把 `GRUB_TIMEOUT` 改为 3 后 `update-grub` |
 | 开机先滚动一堆代码/文字再出 logo | 内核命令行去掉了 `quiet`，或加了 `plymouth.debug`（通常是调试残留） | 确保 `/etc/default/grub` 的 `GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"`，去掉 `plymouth.debug`，再 `sudo update-grub` |
+| 登录界面(GDM)显示 Ubuntu logo 而非苹果 | MacTahoe GDM 主题被系统更新重置，Yaru gresource 还原回 Ubuntu 默认 | 重跑 `sudo themes/MacTahoe-gtk-theme/tweaks.sh -g -i apple`，再重启 GDM/整机；验证 Yaru `gnome-shell-theme.gresource` 旁有 `.bak` 且本体被更新 |
 | 恢复后"缺少组件" | 只恢复了 gsettings，dconf/文件缺失 | 确认完整执行 restore.sh 三层 |
 
 ---

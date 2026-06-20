@@ -106,7 +106,10 @@ fi
 echo ""
 echo "🔐 GDM 登录主题..."
 if [ -f "$DIR/themes/MacTahoe-gtk-theme/tweaks.sh" ]; then
-    sudo "$DIR/themes/MacTahoe-gtk-theme/tweaks.sh" -g 2>&1 | tail -2
+    # -g 装 GDM 登录主题，-i apple 把 Activities 按钮换成苹果图标
+    # 注意：tweaks.sh 直接覆盖 Yaru 的 gnome-shell-theme.gresource，
+    # 系统更新(gnome-shell/yaru-theme 升级)可能重置回 Ubuntu logo，届时重跑本步即可。
+    sudo "$DIR/themes/MacTahoe-gtk-theme/tweaks.sh" -g -i apple 2>&1 | tail -2
     echo "  ✓ 已安装"
 else
     echo "  ⚠ tweaks.sh 缺失，跳过"
