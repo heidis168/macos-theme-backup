@@ -222,7 +222,8 @@ gnome-shell-extension-manager  imagemagick
 | 壁纸路径错误 | 硬编码了旧用户名 | restore.sh 中 `sed "s|/home/旧用户|$HOME|g"` |
 | 窗口不圆角 | Blur My Shell panel/corner-radius=0 覆盖 | `dconf write ...corner-radius 32` |
 | 启动界面不显示 | 未 update-initramfs | `sudo update-initramfs -u` |
-| 启动界面黑屏/无 logo | `mac.plymouth` 内 ImageDir/ScriptFile 指向 `/themes/mac/`，但实际装在 `mac-improved/` → 找不到资源 | 改为指向 `mac-improved` 后 `sudo update-initramfs -u`（bootstrap.sh 已自动 sed 修正） |
+| 启动显示 Ubuntu logo 而非苹果 logo | **主题装到了非标准目录名(如 mac-improved)** → Ubuntu initramfs hook 只为标准目录复制 PNG 资源，boot.png 缺失，plymouth 回退默认 logo | 必须装到 `/usr/share/plymouth/themes/**mac**/`(标准名)，再 `update-initramfs -u`；验证 `lsinitramfs /boot/initrd.img-$(uname -r) \| grep mac/boot.png` 应有输出 |
+| 启动界面一闪而过看不见 | NVMe 等快速硬件 + `GRUB_TIMEOUT=0` | `plymouthd.conf` 设 `DeviceTimeout=8`，并把 `GRUB_TIMEOUT` 改为 3 后 `update-grub` |
 | 恢复后"缺少组件" | 只恢复了 gsettings，dconf/文件缺失 | 确认完整执行 restore.sh 三层 |
 
 ---

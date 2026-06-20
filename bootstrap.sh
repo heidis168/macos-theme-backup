@@ -73,17 +73,29 @@ fi
 echo ""
 echo "🍎 Plymouth 启动主题..."
 if [ -d "$DIR/plymouth/mac" ]; then
-    sudo cp -r "$DIR/plymouth/mac" /usr/share/plymouth/themes/mac-improved
-    # 关键修复：安装目录为 mac-improved，但 mac.plymouth 内部 ImageDir/ScriptFile
-    # 仍指向旧路径 .../themes/mac/ → 开机找不到资源，启动界面无法渲染。
-    # 复制后自动把内部路径改为实际安装目录，保持目录名与引用一致。
-    sudo sed -i 's|/usr/share/plymouth/themes/mac\b|/usr/share/plymouth/themes/mac-improved|g' \
-        /usr/share/plymouth/themes/mac-improved/mac.plymouth
+    # ★ 关键：必须用标准目录名 mac，不能用 mac-improved 等自定义名！
+    # Ubuntu 的 initramfs plymouth hook 只为标准目录名复制图片资源(boot.png 等)，
+    # 非标准目录名会导致 .plymouth 被打包但所有 PNG 图片缺失 →
+    # plymouth 找不到 boot.png 无法画苹果 logo → 回退显示 Ubuntu 默认 logo。
+    sudo rm -rf /usr/share/plymouth/themes/mac
+    sudo cp -r "$DIR/plymouth/mac" /usr/share/plymouth/themes/mac
+    # 确保 mac.plymouth 内部 ImageDir/ScriptFile 指向标准 mac 目录
+    sudo sed -i 's|/usr/share/plymouth/themes/mac-improved|/usr/share/plymouth/themes/mac|g' \
+        /usr/share/plymouth/themes/mac/mac.plymouth
     sudo update-alternatives --install \
         /usr/share/plymouth/themes/default.plymouth \
         default.plymouth \
-        /usr/share/plymouth/themes/mac-improved/mac.plymouth \
+        /usr/share/plymouth/themes/mac/mac.plymouth \
         300
+    sudo update-alternatives --set default.plymouth /usr/share/plymouth/themes/mac/mac.plymouth
+    # 显式锁定主题 + 给 splash 显示时间(现代 NVMe 硬件启动极快，splash 易一闪而过)
+    sudo tee /etc/plymouth/plymouthd.conf > /dev/null <<'PLYCONF'
+# Administrator customizations go in this file
+[Daemon]
+Theme=mac
+ShowDelay=0
+DeviceTimeout=8
+PLYCONF
     sudo update-initramfs -u 2>&1 | tail -1
     echo "  ✓ 已安装（重启生效）"
 else
