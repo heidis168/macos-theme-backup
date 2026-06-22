@@ -88,34 +88,76 @@ if [ -d "$DIR/plymouth/mac" ]; then
         /usr/share/plymouth/themes/mac/mac.plymouth \
         300
     sudo update-alternatives --set default.plymouth /usr/share/plymouth/themes/mac/mac.plymouth
-    # 显式锁定主题 + 给 splash 显示时间(现代 NVMe 硬件启动极快，splash 易一闪而过)
-    sudo tee /etc/plymouth/plymouthd.conf > /dev/null <<'PLYCONF'
+
+    # ★ 智能识别"接显示器的 GPU"，决定 plymouth 渲染策略：
+    # 通过 /sys/class/drm/card*-* connector 的 status=connected 反查它所属的 card,
+    # 再 readlink card 的驱动名 - 这就是真正承担显示输出的 GPU。
+    PRIMARY_DRV=""
+    for conn in /sys/class/drm/card*-*; do
+        if [ "$(cat "$conn/status" 2>/dev/null)" = "connected" ]; then
+            CARD=$(basename "$conn" | sed 's/-.*//')
+            PRIMARY_DRV=$(readlink "/sys/class/drm/$CARD/device/driver" 2>/dev/null | xargs basename 2>/dev/null)
+            break
+        fi
+    done
+    NUM_CARDS=$(ls -d /sys/class/drm/card[0-9] 2>/dev/null | wc -l)
+    echo "  ℹ 主显示 GPU: ${PRIMARY_DRV:-未知}, 物理显卡数: $NUM_CARDS"
+
+    # 混合显卡(card0=amdgpu 无输出 + card1=i915 接屏)场景:
+    # plymouth 24 默认遍历 /dev/dri/card0 → 选中 amdgpu → 但 amdgpu 没 connected output → 渲染失败 → 全程黑屏
+    # 解法: plymouth 24 新选项 UseSimpledrm=yes,强制走 simpledrm framebuffer,跳过 DRM 协商
+    USE_SIMPLEDRM="no"
+    if [ "$NUM_CARDS" -gt 1 ] && [ "$PRIMARY_DRV" = "i915" ]; then
+        USE_SIMPLEDRM="yes"
+        echo "  ⚙ 检测到混合显卡且主显示由 i915 输出 → 启用 UseSimpledrm=yes"
+    fi
+
+    # 显式锁定主题 + 给 splash 显示时间 + 按需启用 UseSimpledrm
+    sudo tee /etc/plymouth/plymouthd.conf > /dev/null <<PLYCONF
 # Administrator customizations go in this file
 [Daemon]
 Theme=mac
 ShowDelay=0
 DeviceTimeout=8
+UseSimpledrm=$USE_SIMPLEDRM
 PLYCONF
+
     # ★ 让启动 logo 一开机就显示(而不是先跑一堆内核文字)：
-    # 现象根因 = 显卡驱动(amdgpu/i915/nouveau)默认不在 initramfs 里，
-    # 内核要等挂载根分区后才加载它，这之前 plymouth 没图形驱动只能显示文字。
-    # 解决 = 把显卡驱动 + 固件强制打进 initramfs 早期加载。
-    # ⚠ 注意 Ubuntu 26.04 用 dracut(不是 initramfs-tools)，必须用 dracut 语法。
+    # 显卡驱动默认不在 initramfs 里，内核要等挂载根分区后才加载，这之前 plymouth 没图形驱动只能黑屏。
+    # 解决 = 把"接显示器的 GPU 驱动"强制打进 initramfs 早期加载。
+    # ⚠ 关键: 只 early-load 主显示卡的驱动!
+    #   - AMD 单卡机: force_drivers="amdgpu"     ← 正常
+    #   - 混合显卡(i915主+amdgpu副): force_drivers="i915" ← 不能加 amdgpu,否则它会抢走 /dev/dri/card0 让 plymouth 失败
+    # Ubuntu 26.04 用 dracut(不是 initramfs-tools)。
     if command -v dracut >/dev/null 2>&1; then
-        GPU_DRV=""
-        lspci -k 2>/dev/null | grep -iA3 -E "vga|3d|display" | grep -qi amdgpu && GPU_DRV="amdgpu"
-        lspci -k 2>/dev/null | grep -iA3 -E "vga|3d|display" | grep -qi i915   && GPU_DRV="$GPU_DRV i915"
-        lspci -k 2>/dev/null | grep -iA3 -E "vga|3d|display" | grep -qi nouveau && GPU_DRV="$GPU_DRV nouveau"
-        if [ -n "$GPU_DRV" ]; then
-            sudo mkdir -p /etc/dracut.conf.d
-            # force_drivers 让驱动早期加载；hostonly-no 时 dracut 会带上其固件
-            printf 'force_drivers+=" %s "\nearly_microcode=yes\n' "$GPU_DRV" \
-                | sudo tee /etc/dracut.conf.d/90-gpu-early.conf > /dev/null
-            echo "  ✓ 显卡驱动 ($GPU_DRV) 设为 initramfs 早期加载"
-        fi
+        sudo mkdir -p /etc/dracut.conf.d
+        # 删旧配置避免重复
+        sudo rm -f /etc/dracut.conf.d/90-gpu-early.conf /etc/dracut.conf.d/91-plymouth-mac.conf
+        # 写新配置: plymouth 模块 + 主显示卡驱动早期加载 + mac 主题文件
+        sudo tee /etc/dracut.conf.d/91-plymouth-mac.conf > /dev/null <<DRACUTCONF
+add_dracutmodules+=" plymouth "
+force_drivers+=" ${PRIMARY_DRV:-i915} "
+early_microcode=yes
+install_items+=" /usr/share/plymouth/themes/mac/mac.plymouth /usr/share/plymouth/themes/mac/mac.script "
+install_items+=" /usr/share/plymouth/themes/mac/boot.png /usr/share/plymouth/themes/mac/boot.svg "
+install_items+=" /usr/share/plymouth/themes/mac/box.png /usr/share/plymouth/themes/mac/bullet.png "
+install_items+=" /usr/share/plymouth/themes/mac/entry.png /usr/share/plymouth/themes/mac/lock.png "
+install_items+=" /usr/share/plymouth/themes/mac/progress_bar.png /usr/share/plymouth/themes/mac/progress_box.png "
+install_items+=" /usr/share/plymouth/themes/mac/shimmer.png "
+DRACUTCONF
+        echo "  ✓ 显卡驱动 (${PRIMARY_DRV:-i915}) + plymouth 模块设为 initramfs 早期加载"
         sudo dracut -f /boot/initrd.img-"$(uname -r)" "$(uname -r)" 2>&1 | tail -1
     else
         sudo update-initramfs -u 2>&1 | tail -1
+    fi
+
+    # 内核命令行: 启用 splash + rd.plymouth + 关闭控制台光标
+    if [ -f /etc/default/grub ]; then
+        sudo sed -i 's|^GRUB_CMDLINE_LINUX_DEFAULT=.*|GRUB_CMDLINE_LINUX_DEFAULT="quiet splash rd.plymouth=1 plymouth.enable=1 vt.global_cursor_default=0"|' /etc/default/grub
+        if [ -d /boot/grub ]; then
+            sudo grub-mkconfig -o /boot/grub/grub.cfg 2>&1 | tail -2
+            echo "  ✓ GRUB 内核命令行已更新"
+        fi
     fi
     echo "  ✓ 已安装（重启生效）"
 else
